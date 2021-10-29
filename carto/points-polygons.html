@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BigQuery dataset in CARTO</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://unpkg.com/deck.gl@^8.6.0/dist.min.js"></script>
+    <script src="https://unpkg.com/@deck.gl/carto@^8.6.0/dist.min.js"></script>  
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+    <div id="map"></div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=[YOUR MAPS API KEY]&callback=initMap&libraries=&v=beta"
+      async
+    ></script>
+    
+  </body>
+
+  <script type="text/javascript">
+    let map;
+ 
+      
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+         center: { lat: 37.797994845965384, lng: -122.4058106927763},
+        zoom: 5,
+        mapId: '856f688f677c0bc3',
+      });
+
+  
+      deck.carto.setDefaultCredentials({
+        apiBaseUrl: 'https://gcp-europe-west1.api.carto.com',
+        apiVersion: deck.carto.API_VERSIONS.V3,
+        accessToken: 'Your map CARTO token'
+    });
+         
+                 
+    const deckOverlay = new deck.GoogleMapsOverlay({
+        layers: [
+          new deck.carto.CartoLayer({
+            id:"layer1", /* required if more than one layer */
+            connection: 'bg-carto-jobs',
+            type: deck.carto.MAP_TYPES.TABLE,
+            data: 'prototypes-214921.publicdata.geo_us_boundaries',
+            geoColumn: 'state_geom', /* BigQuery GEOGRAPHY column */
+            getLineColor: [0, 0, 0],
+            getFillColor: [173,216,230],
+            highlightColor:[255,255,255],
+            opacity:0.1,
+            autoHighlight: true,
+            highlightedObjectIndex:1,
+            lineWidthMinPixels: 1,
+            pickable:true
+          }),
+            new deck.carto.CartoLayer({
+            id:"layer2",
+            connection: 'bg-carto-jobs',
+            type: deck.carto.MAP_TYPES.TABLE,
+            data: 'prototypes-214921.publicdata.earthquakes-v5',
+            geoColumn: 'the_geom', /* BigQuery GEOGRAPHY column */
+            getLineColor: [255, 255, 255],
+            getFillColor: [238, 77, 90],
+            pointRadiusMinPixels: 3,
+            lineWidthMinPixels: 0.5,
+            pickable:true,
+            autoHighlight: true,
+          }),
+        ],
+        /* infowindow content displayed on selection */
+        getTooltip: ({ object }) => {
+        if (!object || object.geometry.type == "Polygon" || object.geometry.type == "MultiPolygon") return false ;
+        //if (!object) return false; /* if one layer for tooltip select uncomment and comment above line*/
+            return {
+              html: `
+                <strong>time</strong>
+                        ${object.properties.year}/${object.properties.month}/${object.properties.day};                     ${object.properties.hour}:${object.properties.minute}:${object.properties.second}
+                <br/>
+                <strong>intensity</strong>: ${object.properties.intensity}<br/>
+                <strong>deaths</strong>: ${object.properties.deaths}<br/>
+                <strong>injuries</strong>: ${object.properties.injuries}<br/>
+                <strong>damage_millions_dollars</strong>: ${object.properties.damage_millions_dollars}<br/>
+                <br/>
+                <strong>total_damage_millions_dollars</strong>: ${object.properties.total_damage_millions_dollars}<br/>
+                <strong>location</strong>:
+                        ${object.properties.location_name},
+                        ${object.properties.region_code},
+                        ${object.properties.state}, 
+                        ${object.properties.country}
+                <br/>
+
+              `
+            }
+       }
+      
+    });    
+    deckOverlay.setMap(map);
+
+    }
+          
+  </script>
+</html>

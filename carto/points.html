@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>EV Stations France - Open Data </title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script src="https://unpkg.com/deck.gl@^8.6.0/dist.min.js"></script>
+    <script src="https://unpkg.com/@deck.gl/carto@^8.6.0/dist.min.js"></script>  
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+    <div id="map"></div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=[YOUR KEY]&callback=initMap&libraries=&v=beta"
+      async
+    ></script>
+    
+  </body>
+
+  <script type="text/javascript">
+    let map;
+ 
+      
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        //center: { lat: 38, lng: -98 },
+         center: { lat: 46.78898593288154,lng: 2.6022217660674998},
+        zoom: 6,
+        mapId: '856f688f677c0bc3',
+        clickableIcons: false
+      });
+
+  
+      deck.carto.setDefaultCredentials({
+        apiBaseUrl: 'https://gcp-europe-west1.api.carto.com',
+        apiVersion: deck.carto.API_VERSIONS.V3,
+        accessToken: 'your token'
+    });
+         
+                 
+    const deckOverlay = new deck.GoogleMapsOverlay({
+        layers: [
+          new deck.carto.CartoLayer({
+            //onDataLoad:"loadLayer2",
+            id:"layer1",
+            connection: 'bg-carto-jobs',
+            type: deck.carto.MAP_TYPES.TABLE,
+            data: 'prototypes-214921.publicdata.ev-stations-aug-2021-v4',
+            geoColumn: 'the_geom', /* BigQuery GEOGRAPHY column */
+            getLineColor: [173,216,230],
+            getFillColor: [27, 130, 204],
+            pointRadiusMinPixels: 3,
+            lineWidthMinPixels: 0.5,
+            pickable:true, /* enable selection */
+            autoHighlight: true,
+          })    
+        ],
+        /* infowindow content displayed on selection */
+        getTooltip: ({ object }) =>
+        object && {
+          html: `
+            <strong>amenageur</strong>: ${object.properties.n_amenageur}<br/>
+            <strong>operateur</strong>: ${object.properties.n_operateur}<br/>
+            <strong>enseigne</strong>: ${object.properties.n_enseigne}<br/>
+            <strong>station</strong>: ${object.properties.n_station}<br/>
+            <strong>date_maj</strong>: ${object.properties.date_maj}<br/>
+            <br/>
+            <strong>nbre_pdc</strong>: ${object.properties.nbre_pdc}<br/>
+            <strong>puiss_max</strong>: ${object.properties.puiss_max}<br/>
+            <strong>type_prise</strong>: ${object.properties.type_prise}<br/>
+            <strong>acces_recharge</strong>: ${object.properties.acces_recharge}<br/>
+            <strong>accessibility</strong>: ${object.properties.accessibilit__}<br/>
+            <strong>observations</strong>: ${object.properties.observations}<br/>
+            <br/>
+            <strong>Longitude</strong>: ${object.geometry.coordinates[0].toFixed(6)}<br/>
+            <strong>Latitude</strong>: ${object.geometry.coordinates[1].toFixed(6)}
+          `
+        },
+    });    
+                
+        deckOverlay.setMap(map);
+        
+        
+    }
+
+  </script>
+</html>
