@@ -1,4 +1,4 @@
-# Guide: BigQuery dataset on Google Maps WebGL with CARTO + deck.gl
+# Example code: BigQuery dataset on Google Maps WebGL with CARTO + deck.gl
 
 
 Use CARTO geospatial analysis platform to display a Google Cloud Bigquery geographic dataset 
